@@ -11,8 +11,8 @@ from numpy import average
 from generate_planar import generate_planar_graph
 
 
-def three_color(coloring, v, hierarchy, what_to_color):
-    neighbor_colors = set([coloring[n] for n in v.all_neighbors()])
+def three_color(graph, view, coloring, v):
+    neighbor_colors = set([coloring[n] for n in graph.iter_all_neighbors(v)])
     #print(f"Choosing color for {v}")
     for color in range(3):
         if color in neighbor_colors:
@@ -22,10 +22,10 @@ def three_color(coloring, v, hierarchy, what_to_color):
             #print(f"Choosing color for {v}: chosen {color}")
             coloring[v] = color
             #graph_draw(graph, vertex_fill_color=coloring, pos=pos)
-            for u in v.all_neighbors():
-                if coloring[u] == -1 and hierarchy[u] == what_to_color:
+            for u in view.iter_all_neighbors(v):
+                if coloring[u] == -1:
                     #print(f"Going to {u}")
-                    result = three_color(coloring, u, hierarchy,  what_to_color)
+                    result = three_color(graph, view, coloring, u)
                     #coloring[v] = -1
                     if not result:
                         return False
@@ -35,16 +35,16 @@ def three_color(coloring, v, hierarchy, what_to_color):
     return True
 
 
-def three_coloring(graph, vertex_color, labels, what_to_color, pos):
+def three_coloring(graph, view, vertex_color, pos):
     """
     Returns a 3-coloring of the given graph, or None if it is not 3-colorable.
-    Only vertices that have value 'what_to_color' in 'labels' property are colored
+    Only the view is colored.
     """
 
     # Taking care of all components
-    for v in graph.vertices():
-        if vertex_color[v] == -1 and labels[v] == what_to_color:
-            neighbor_colors = set([vertex_color[n] for n in v.all_neighbors()])
+    for v in view.iter_vertices():
+        if vertex_color[v] == -1:
+            neighbor_colors = set([vertex_color[n] for n in graph.iter_all_neighbors(v)])
             # Check if it's possible to assign any color
             if len(neighbor_colors) == 3:
                 return None
@@ -55,27 +55,26 @@ def three_coloring(graph, vertex_color, labels, what_to_color, pos):
                     continue
                 vertex_color[v] = color
                 # graph_draw(graph, vertex_fill_color=coloring, pos=pos)
-                for u in v.all_neighbors():
-                    if labels[u] != what_to_color:
-                        continue
-                    result = three_color(vertex_color, u, labels, what_to_color) and result
+                for u in view.iter_all_neighbors(v):
+                    result = three_color(graph, view, vertex_color, u) and result
                     if not result:
                         break
                 if result:
                     break # return vertex_color
             if not result:
                 return None
-    graph_draw(graph, vertex_fill_color=vertex_color, vertex_color=labels, pos=pos)
-    check_coloring(graph, vertex_color, labels, what_to_color)
+    # graph_draw(graph, vertex_fill_color=vertex_color, vertex_color=labels, pos=pos)
+    check_coloring(graph, view, vertex_color)
     return vertex_color
 
 
-def check_coloring(graph, coloring, labels, what_to_color):
+def check_coloring(graph, view: gt.GraphView, coloring):
     if coloring is None:
         return
-    for (s, t) in graph.iter_edges():
-        if (labels[s] == what_to_color or labels[t] == what_to_color) and coloring[s] == coloring[t]:
-            raise Exception('Wrong coloring!')
+    for v in view.iter_vertices():
+        for (s, t) in graph.iter_all_edges(v):
+            if coloring[s] == coloring[t]:
+                raise Exception('Wrong coloring!')
 
 
 def time_test():
