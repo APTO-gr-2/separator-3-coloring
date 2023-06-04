@@ -35,12 +35,12 @@ def three_color(graph, view, coloring, v):
     return True
 
 
-def three_coloring(graph, view, vertex_color, pos):
+def three_coloring(graph, view, old_coloring):
     """
     Returns a 3-coloring of the given graph, or None if it is not 3-colorable.
     Only the view is colored.
     """
-
+    vertex_color = old_coloring.copy()
     # Taking care of all components
     for v in view.iter_vertices():
         if vertex_color[v] == -1:
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         vertex_color.a = -1
         hierarchy = graph.new_vertex_property("int")
         hierarchy.a = 0
-        coloring = three_coloring(graph, vertex_color, hierarchy, 0)  # 0 is the index of separator
+        coloring = three_coloring(graph, vertex_color, hierarchy)  # 0 is the index of separator
         end_time = time.time()
     check_coloring(graph, coloring)
     graph_draw(graph, vertex_fill_color=coloring, pos=pos)
