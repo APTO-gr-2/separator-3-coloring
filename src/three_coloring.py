@@ -1,6 +1,5 @@
 import time
 from cmath import sqrt
-from types import NoneType
 
 import graph_tool as gt
 import numpy as np
@@ -55,7 +54,7 @@ def three_coloring(graph, view, old_coloring):
                     continue
                 vertex_color[v] = color
                 # graph_draw(graph, vertex_fill_color=coloring, pos=pos)
-                for u in view.iter_all_neighbors(v):
+                for u in view.iter_all_neighbors(v): # TODO: What if one of them gets colored in previous step?
                     result = three_color(graph, view, vertex_color, u) and result
                     if not result:
                         break

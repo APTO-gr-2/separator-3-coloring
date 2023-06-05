@@ -2,8 +2,10 @@ from graph_tool import GraphView
 from graph_tool.draw import graph_draw
 
 from generate_separated_graph import generate_separated_graph
+from src.all_three_colorings import all_three_colorings
 from src.find_components import find_components
 from three_coloring import three_coloring, check_coloring
+
 
 def separator_3coloring(G, n):
 
@@ -17,7 +19,7 @@ def sep3col_rec(G, coloring, view, n):
     if len(view.get_vertices()) < n:
         return three_coloring(G, view, coloring)
 
-    sep_colorings = [all_three_coloring(G, GraphView(g, vfilt=lambda v: side[v] == 1), coloring)]
+    sep_colorings = [all_three_colorings(G, GraphView(g, vfilt=lambda v: side[v] == 1), coloring)]
 
     for sep_coloring in sep_colorings:
         graph_draw(g, vertex_fill_color=sep_coloring, pos=pos)
