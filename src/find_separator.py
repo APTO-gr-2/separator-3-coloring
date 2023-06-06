@@ -4,7 +4,6 @@ import numpy as np
 from graph_tool.draw import graph_draw
 from matplotlib import pyplot as plt
 from numpy import average
-import queue
 
 from generate_planar import generate_planar_graph
 from find_components import find_components
@@ -118,8 +117,9 @@ def find_separator(graph, component, isFullAlgoritm):
     
     for e in g_prim.edges():
         if not e in spanning_tree_edges:
-            no_tree_edge = e
-            cycle = find_cycle(e.source(), e.target(), vertex_ancestors, g_prim)
+            x = e.source()
+            z = e.target()
+            cycle, cycle_edges = find_cycle(x, z, vertex_ancestors, g_prim)
             break
     
     sideA, sideB = find_two_sides(g_prim_list, cycle)
@@ -127,46 +127,54 @@ def find_separator(graph, component, isFullAlgoritm):
     if len(sideA) < len(sideB):
         sideA, sideB = sideB, sideA
 
-    x = no_tree_edge.source()
-    z = no_tree_edge.target()
-    
+    y = None
+    loop_limit = 1000 
+    i = 0
     while len(sideA) < 2.0/3 * n and len(sideB) < 2.0/3 * n:
+        if(i > loop_limit): # Zabezpiecznie przed nieskończoną pętlą
+            break
         for v in sideA:
             if g_prim.edge(v, x) != None and g_prim.edge(v, z) != None:
                 y = v
                 break
-        if g_prim.edge(x, y) in cycle:
-            cycle.remove(g_prim.edge(x, y))
-            cycle.remove(g_prim.edge(x, z))
-            cycle.add(g_prim.edge(z, y))
+        if(y == None):
+            break
+        if g_prim.edge(x, y) in cycle_edges: #4.13 Przypadek 2.1
+            cycle_edges.remove(g_prim.edge(x, y))
+            if(g_prim.edge(x, z) in cycle_edges): #tu dziwny błąd , bo normalnie to zawsze powino być prawdą
+                cycle_edges.remove(g_prim.edge(x, z))
+            cycle_edges.add(g_prim.edge(y, z))
+            if(x in cycle): #tu dziwny błąd, bo normalnie to zawsze powino być prawdą
+                cycle.remove(x)
             sideB.append(x)
-            sideA.remove(y)
             x = y
-        elif g_prim.edge(z, y) in cycle:
-            cycle.remove(g_prim.edge(z, y))
-            cycle.remove(g_prim.edge(z, x))
-            cycle.add(g_prim.edge(x, y))
+        elif g_prim.edge(z, y) in cycle: #4.13 Przypadek 2.2
+            cycle_edges.remove(g_prim.edge(y, z))
+            cycle_edges.remove(g_prim.edge(x, z))
+            cycle_edges.add(g_prim.edge(x, y))
+            cycle.remove(z)
             sideB.append(z)
-            sideA.remove(y)
             z = y
         elif g_prim.edge(x, y) in spanning_tree_edges or g_prim.edge(z, y) in spanning_tree_edges:
-            cycle.remove(g_prim.edge(x, z))
-            cycle.add(g_prim.edge(x, y))
-            cycle.add(g_prim.edge(z, y))
-            sideA.remove(y)
+            cycle_edges.remove(g_prim.edge(x, z))
+            cycle_edges.add(g_prim.edge(x, y))
+            cycle_edges.add(g_prim.edge(y, z))
+            cycle.add(y)
+            if(y in sideA): #tu dziwny błąd, bo normalnie to zawsze powino być prawdą
+                sideA.remove(y)
             if g_prim.edge(x, y) in spanning_tree_edges:
-                z = y
+                x = y
             elif g_prim.edge(z, y) in spanning_tree_edges:
-                z = x  
+                z = y  
         else:
-            cycle1 = find_cycle(x, y, vertex_ancestors, g_prim)
+            cycle1, cycle_edges1 = find_cycle(x, y, vertex_ancestors, g_prim)
             sideA1, sideB1 = find_two_sides(g_prim_list, cycle1)
             if len(sideA1) < len(sideB1):
                 sideA1, sideB1 = sideB1, sideA1
             diff1 = len(sideA1) - len(sideB1)
             
-            cycle2 = find_cycle(y, z, vertex_ancestors)
-            sideA2, sideB2 = find_two_sides(g_prim_list, cycle2, g_prim)
+            cycle2, cycle_edges2 = find_cycle(y, z, vertex_ancestors, g_prim)
+            sideA2, sideB2 = find_two_sides(g_prim_list, cycle2)
             if len(sideA2) < len(sideB2):
                 sideA2, sideB2 = sideB2, sideA2
             diff2 = len(sideA2) - len(sideB2)
@@ -175,12 +183,17 @@ def find_separator(graph, component, isFullAlgoritm):
                 cycle = cycle1
                 sideA = sideA1
                 sideB = sideB1
+                cycle_edges = cycle_edges1
+                z = y
             else:
                 cycle = cycle2
                 sideA = sideA2
-                sideB = sideB2            
+                sideB = sideB2 
+                cycle_edges = cycle_edges2 
+                x = y
+        i += 1
                 
-    for i in (1, len(g_prim_list)):
+    for i in (1, len(g_prim_list)-1):
         if g_prim_list[i] in cycle:
             separator.append(Z1[i-1])
     return separator
@@ -207,13 +220,13 @@ def find_levels(component, p):
     return levels
     
 if __name__ == "__main__":
-    (graph,pos) = generate_planar_graph(20, 30)
+    (graph,pos) = generate_planar_graph(100, 120)
     components_list = find_components(graph)
     color_map = {0:(1,1,1,1),1:(0,0,1,1),100:(0,0,0,1), 200:(1,0,0,1)}
     coloring = graph.new_vertex_property('int')
     final_coloring = graph.new_vertex_property('vector<double>')
     for c in components_list:
-        separator = find_separator(graph, c, False)
+        separator = find_separator(graph, c, True)
         print(separator)
         for v in separator:
             coloring[v] = 200
