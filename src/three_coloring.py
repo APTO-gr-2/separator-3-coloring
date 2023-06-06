@@ -44,8 +44,9 @@ def three_coloring(graph, view, old_coloring):
     for v in view.iter_vertices():
         if vertex_color[v] == -1:
             neighbor_colors = set([vertex_color[n] for n in graph.iter_all_neighbors(v)])
+            neighbor_colors.add(-1)
             # Check if it's possible to assign any color
-            if len(neighbor_colors) == 3:
+            if len(neighbor_colors) == 4:
                 return None
             result = True
             # Try assigning all possibilities
