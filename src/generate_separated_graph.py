@@ -5,7 +5,7 @@ from graph_tool import Graph
 from graph_tool.draw import graph_draw
 
 
-def generate_separated_graph(n1, n2, sep_size):
+def generate_separated_graph(n1, sep_size, n2):
     g = Graph(directed=False)
     sep_index = g.new_vertex_property("int")
     side = g.new_vertex_property("int")
@@ -17,13 +17,13 @@ def generate_separated_graph(n1, n2, sep_size):
         v = g.add_vertex()
         sep.append(v)
         sep_index[v] = 1
-        side[v] = 0
+        side[v] = 1
         pos[v] = [0.5, random.uniform(0, 1)]
     for i in range(n1):
         v = g.add_vertex()
         v1.append(v)
         sep_index[v] = 0
-        side[v] = 1
+        side[v] = 0
         pos[v] = [random.uniform(0, 0.4), random.uniform(0, 1)]
     for i in range(n2):
         v = g.add_vertex()
@@ -35,7 +35,7 @@ def generate_separated_graph(n1, n2, sep_size):
     for set in [sep, v1, v2]:
         sep_edges = list(itertools.combinations(set, 2))
         random.shuffle(sep_edges)
-        edge_count = random.randint(int(len(sep_edges) ** 0.25), int(len(sep_edges) ** 0.5))
+        edge_count = random.randint(int(len(sep_edges) ** 0.3), int(len(sep_edges) ** 0.5))
         for i in range(edge_count):
             g.add_edge(sep_edges[i][0], sep_edges[i][1])
 
