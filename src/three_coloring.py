@@ -106,6 +106,13 @@ def time_test():
 
     graph_draw(graph, vertex_fill_color=coloring, pos=pos)
 
+
+def start_three_coloring(G):
+    vertex_color = G.new_vertex_property("int")
+    vertex_color.a = -1
+    return three_coloring(G, gt.GraphView(G), vertex_color)
+
+
 if __name__ == "__main__":
     #time_test()
     coloring = None
