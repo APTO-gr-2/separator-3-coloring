@@ -1,24 +1,31 @@
-from graph_tool import GraphView
+from graph_tool import GraphView, PropertyMap
 
 from src.find_components import find_components
 
 
-def __recur_all_three_colorings(graph, view, vertex_color, v):
+def __recur_all_three_colorings(graph, view, vertex_color: PropertyMap, v):
     possible_three_colorings = []
+    colorings_to_combine = []
+    colorings_to_sum = []
     neighbor_colors = set([vertex_color[n] for n in graph.iter_all_neighbors(v)])
     for color in range(3):
         if color in neighbor_colors:
             continue
-        possible_three_colorings_for_color = []
-        temp_coloring = vertex_color.copy()
+        temp_coloring: PropertyMap = vertex_color.copy()
         temp_coloring[v] = color
+        iterations = 0  # Check if any neighbours were colored
         for u in view.iter_all_neighbors(v):
             if temp_coloring[u] == -1:
                 continue
+            iterations += 1
             # Get list of possible colorings
             result_colorings = __recur_all_three_colorings(graph, view, temp_coloring, u)
-            possible_three_colorings_for_color.append(result_colorings)
-        # TODO: Make combinations of possible_three_colorings_for_color
+            colorings_to_combine.append(result_colorings)
+        if iterations == 0:
+            colorings_to_sum.append(temp_coloring)
+        else:
+            pass
+            # TODO: Make combinations of possible_three_colorings_for_color
     # TODO: Sum the combinations by color
     return possible_three_colorings
 
