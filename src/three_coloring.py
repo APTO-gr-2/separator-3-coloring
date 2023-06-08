@@ -39,6 +39,8 @@ def three_coloring(graph, view, old_coloring):
     Returns a 3-coloring of the given graph, or None if it is not 3-colorable.
     Only the view is colored.
     """
+    if old_coloring is None:
+        return None
     vertex_color = old_coloring.copy()
     # Taking care of all components
     for v in view.iter_vertices():

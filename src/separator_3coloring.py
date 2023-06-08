@@ -23,7 +23,7 @@ def separator_3coloring(G, n, show_progress=False):
 
 
 def __sep3col_rec(G, my_component, coloring, view, n, show_progress, pos=None):
-    if len(view.get_vertices()) < n:
+    if len(view.get_vertices()) <= n:
         return three_coloring(G, view, coloring)
 
     separator = find_separator(G, my_component, True)
@@ -71,7 +71,7 @@ def __sep3col_rec(G, my_component, coloring, view, n, show_progress, pos=None):
 if __name__ == "__main__":
     # g, sep_index, side, pos = generate_separated_graph(40, 40, 30)
 
-    G, pos = generate_planar_graph(800, 820)
+    G, pos = generate_planar_graph(1000, 600)
     graph_draw(G, pos=pos)
 
     n = 100
@@ -81,5 +81,5 @@ if __name__ == "__main__":
     check_coloring(G, GraphView(G), coloring)
     if coloring is not None:
         G.vp["pos"] = pos
-        G.save("graph7.gt.gz")
+        G.save("graph9-100.gt.gz")
     print("Done")
